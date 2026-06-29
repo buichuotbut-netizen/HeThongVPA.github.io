@@ -15,7 +15,7 @@
         .chat-avatar { width: 45px; height: 45px; border-radius: 50%; background: #555; margin-right: 12px; background-size: cover; flex-shrink: 0; cursor: pointer; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 2000; }
         .modal-content { background: #2f3136; padding: 30px; border-radius: 8px; width: 400px; text-align: center; color: #fff; }
-        #custom-alert { display: none; position: fixed; top: 20px; background: #ed4245; color: white; padding: 15px; border-radius: 5px; z-index: 3000; }
+        #custom-alert { display: none; position: fixed; top: 20px; right: 20px; background: #ed4245; color: white; padding: 15px 25px; border-radius: 5px; z-index: 3000; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-weight: bold; border-left: 5px solid #b32a2d; }
         .header-chat { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .menu-dropdown { display: none; background: #202225; padding: 10px; margin-bottom: 10px; border-radius: 5px; color: #fff; border: 1px solid #3e4249; }
         .nav-content { display: none; flex-direction: column; color: #fff; height: 100%; }
@@ -26,6 +26,14 @@
 <body>
 
     <div id="custom-alert"></div>
+
+    <div id="ban-modal" class="modal" style="z-index: 9999;">
+        <div class="modal-content" style="background:#ed4245; border: 3px solid #fff;">
+            <h1 style="color:white">🚫 BẠN ĐÃ BỊ BAN</h1>
+            <p id="ban-reason-text" style="color:white; font-size:18px;"></p>
+            <button style="background:white; color:#ed4245; font-weight:bold" onclick="location.reload()">Đã rõ</button>
+        </div>
+    </div>
 
     <div id="register-screen" class="app-container active-screen">
         <h2>Tạo tài khoản</h2>
@@ -112,6 +120,17 @@
         let spamCount = 0;
         let isBlocked = false;
 
+        // Kiểm tra ban mỗi 2 giây
+        setInterval(() => {
+            const myUsername = localStorage.getItem('user');
+            const bannedUser = localStorage.getItem('bannedUser');
+            if (myUsername && myUsername === bannedUser) {
+                document.getElementById('ban-reason-text').innerText = "Lý do: " + (localStorage.getItem('banReason') || "Vi phạm quy định");
+                document.getElementById('ban-modal').style.display = 'flex';
+                document.body.style.pointerEvents = 'none';
+            }
+        }, 2000);
+
         window.addEventListener('storage', () => {
             updateStats();
         });
@@ -136,7 +155,8 @@
 
         function showAlert(msg) {
             const el = document.getElementById('custom-alert');
-            el.innerText = msg; el.style.display = 'block';
+            el.innerHTML = `⚠️ ${msg}`;
+            el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 3000);
         }
 
@@ -271,9 +291,14 @@
             const date = isBot ? "Admin" : localStorage.getItem('joinDate');
             const user = isBot ? "system" : localStorage.getItem('user');
             
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            const adminLogo = (isAdmin && name === localStorage.getItem('user')) 
+                ? `<img src="https://files.catbox.moe/5d0knn.png" style="width:16px; height:16px; vertical-align:middle; margin-left:5px;">` 
+                : '';
+            
             chat.innerHTML += `<div class="chat-msg">
                 <div class="chat-avatar" style="background-image:url(${avatar})" onclick="showUserModal('${name}', '${user}', '${bio}', '${avatar}', '${date}')"></div>
-                <div><b>${name}</b><br>${text}</div>
+                <div><b>${name} ${adminLogo}</b><br>${text}</div>
             </div>`;
             chat.scrollTop = chat.scrollHeight;
         }
