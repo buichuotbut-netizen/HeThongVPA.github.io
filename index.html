@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hệ thống Tài khoản VPA</title>
+    <style>
+        body { font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #36393f; color: #b9bbbe; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .app-container { background-color: #2f3136; width: 650px; height: 650px; border-radius: 8px; padding: 20px; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.5); flex-direction: column; }
+        .active-screen { display: flex !important; }
+        input, textarea { background-color: #202225; border: 1px solid #202225; border-radius: 3px; color: #dcddde; padding: 10px; width: 100%; box-sizing: border-box; margin-bottom: 15px; }
+        button { background-color: #5865f2; color: #fff; border: none; border-radius: 3px; padding: 10px; cursor: pointer; }
+        .role-pill { display: inline-block; padding: 5px 10px; border-radius: 15px; background: #40444b; margin: 3px; font-size: 12px; color: #fff; border: 1px solid #5865f2; }
+        #chat-box, .nav-box { flex-grow: 1; background: #202225; padding: 15px; overflow-y: auto; margin-bottom: 15px; border-radius: 5px; border: 1px solid #3e4249; }
+        .chat-msg { display: flex; align-items: flex-start; margin-bottom: 15px; padding: 5px; }
+        .chat-avatar { width: 45px; height: 45px; border-radius: 50%; background: #555; margin-right: 12px; background-size: cover; flex-shrink: 0; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 2000; }
+        .modal-content { background: #2f3136; padding: 30px; border-radius: 8px; width: 400px; text-align: center; color: #fff; }
+        #custom-alert { display: none; position: fixed; top: 20px; background: #ed4245; color: white; padding: 15px; border-radius: 5px; z-index: 3000; }
+        .header-chat { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .menu-dropdown { display: none; background: #202225; padding: 10px; margin-bottom: 10px; border-radius: 5px; color: #fff; border: 1px solid #3e4249; }
+        .nav-content { display: none; flex-direction: column; color: #fff; height: 100%; }
+        .list-item { background: #36393f; padding: 15px; margin-bottom: 10px; border-radius: 5px; border-left: 4px solid #5865f2; }
+        .stats-bar { background: #202225; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 13px; color: #fff; border: 1px solid #3e4249; }
+    </style>
+</head>
+<body>
+
+    <div id="custom-alert"></div>
+
+    <div id="register-screen" class="app-container active-screen">
+        <h2>Tạo tài khoản</h2>
+        <input type="text" id="reg-username" placeholder="Tên đăng nhập (duy nhất)">
+        <input type="password" id="reg-password" placeholder="Mật khẩu (6-12 ký tự)">
+        <button onclick="handleRegister()">Đăng ký</button>
+        <button style="background:#4f545c; margin-top: 10px" onclick="showScreen('login-screen')">Đã có tài khoản? Đăng nhập</button>
+    </div>
+
+    <div id="login-screen" class="app-container">
+        <h2>Đăng nhập</h2>
+        <input type="text" id="log-username" placeholder="Tên đăng nhập">
+        <input type="password" id="log-password" placeholder="Mật khẩu">
+        <button onclick="handleLogin()">Đăng nhập</button>
+        <button style="background:#4f545c; margin-top: 10px" onclick="showScreen('register-screen')">Chưa có tài khoản? Đăng ký</button>
+    </div>
+
+    <div id="settings-screen" class="app-container">
+        <h2>Cài đặt hồ sơ</h2>
+        <img id="avatar-preview" src="" style="width:100px;height:100px;border-radius:50%;background:#555;display:block;margin:0 auto 15px" onclick="document.getElementById('avatar-file').click()">
+        <input type="file" id="avatar-file" style="display:none" onchange="previewAvatar(this)">
+        <input type="text" id="new-display-name" placeholder="Tên hiển thị">
+        <input type="password" id="new-password" placeholder="Mật khẩu mới (để trống nếu không đổi)">
+        <textarea id="new-bio" placeholder="Tiểu sử..."></textarea>
+        <button onclick="saveProfile()">Lưu thông tin</button>
+        <button style="background:#ed4245; margin-top: 10px" onclick="handleLogout()">Đăng xuất</button>
+        <button style="background:#4f545c; margin-top: 10px" onclick="showScreen('chat-screen')">Quay lại khung chat</button>
+    </div>
+
+    <div id="chat-screen" class="app-container">
+        <div class="header-chat">
+            <h2 style="margin:0">Kênh chat VPA</h2>
+            <div>
+                <button style="width:auto; background:#4f545c" onclick="toggleMenu()">≡</button>
+                <button style="width:auto; background:#4f545c" onclick="showScreen('settings-screen')">⚙️</button>
+            </div>
+        </div>
+        <div id="menu-drawer" class="menu-dropdown">
+            <div style="cursor:pointer; padding:5px; border-bottom: 1px solid #333" onclick="showNav('notification-screen')">🔔 Xem thông báo</div>
+            <div style="cursor:pointer; padding:5px" onclick="showNav('vinhdanh-screen')">🏆 Xem vinh danh</div>
+        </div>
+        <div class="stats-bar" id="member-stats">
+            Tổng thành viên: 0 | Thành viên đang onl: 0
+        </div>
+        <div id="chat-box"></div>
+        <div style="display:flex; gap:10px; margin-bottom: 10px;">
+            <input type="file" id="img-input" style="display:none" accept="image/*" onchange="sendFile(this, 'image')">
+            <button style="width:auto" onclick="document.getElementById('img-input').click()">🖼️</button>
+            <input type="file" id="file-input" style="display:none" onchange="sendFile(this, 'file')">
+            <button style="width:auto" onclick="document.getElementById('file-input').click()">📁</button>
+            <button style="width:auto" onclick="recordVoice()">🎤</button>
+        </div>
+        <input type="text" id="chat-msg" placeholder="Nhập tin nhắn..." style="margin:0">
+        <button onclick="sendMessage()" style="margin-top:10px">Gửi</button>
+    </div>
+
+    <div id="notification-screen" class="app-container nav-content">
+        <h2>Thông báo hệ thống</h2>
+        <div id="notify-box" class="nav-box"></div>
+        <button onclick="showScreen('chat-screen')">Quay lại chat</button>
+    </div>
+
+    <div id="vinhdanh-screen" class="app-container nav-content">
+        <h2>Bảng vinh danh</h2>
+        <div id="vinhdanh-box" class="nav-box"></div>
+        <button onclick="showScreen('chat-screen')">Quay lại chat</button>
+    </div>
+
+    <div id="user-modal" class="modal" onclick="this.style.display='none'">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div id="modal-avatar" style="width:100px;height:100px;background:#555;border-radius:50%;margin:0 auto 10px;background-size:cover; border: 3px solid #36393f;"></div>
+            <h2 id="modal-name">Tên</h2>
+            <p><strong>Tên đăng nhập:</strong> <span id="modal-username"></span></p>
+            <p><strong>Ngày tham gia:</strong> <span id="modal-date"></span></p>
+            <p><strong>Vai trò:</strong> <span class="role-pill">Member</span></p>
+            <p style="text-align: left; background: #202225; padding: 10px; border-radius: 5px;"><strong>Tiểu sử:</strong><br><span id="modal-bio"></span></p>
+        </div>
+    </div>
+
+    <script>
+        const BOT_AVATAR = "https://files.catbox.moe/3le007.jpeg";
+        const BOT_BIO = "Hệ Thống Web";
+        let lastMsgTime = 0;
+        let spamCount = 0;
+        let isBlocked = false;
+
+        window.addEventListener('storage', () => {
+            updateStats();
+        });
+
+        function checkWeeklyReset() {
+            const lastReset = localStorage.getItem('lastResetDate');
+            const now = new Date();
+            const weekOfYear = Math.floor(now.getTime() / (1000 * 60 * 60 * 24 * 7));
+            if (!lastReset || parseInt(lastReset) !== weekOfYear) {
+                localStorage.removeItem('vinhdanhData');
+                localStorage.setItem('lastResetDate', weekOfYear);
+            }
+        }
+        checkWeeklyReset();
+
+        function updateStats() {
+            let total = parseInt(localStorage.getItem('totalMembers') || "0");
+            let online = parseInt(localStorage.getItem('onlineMembers') || "0");
+            document.getElementById('member-stats').innerText = `Tổng thành viên : ${total} | Thành viên đang onl : ${online}`;
+        }
+        updateStats();
+
+        function showAlert(msg) {
+            const el = document.getElementById('custom-alert');
+            el.innerText = msg; el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        function showScreen(id) {
+            document.querySelectorAll('.app-container').forEach(el => el.classList.remove('active-screen'));
+            document.getElementById(id).classList.add('active-screen');
+        }
+
+        function showNav(id) {
+            document.getElementById('menu-drawer').style.display = 'none';
+            if(id === 'notification-screen') {
+                const box = document.getElementById('notify-box');
+                const notify = localStorage.getItem('notifyData') || "Chào mừng bạn gia nhập cộng đồng VPA.";
+                box.innerHTML = `<div class="chat-msg">
+                    <div class="chat-avatar" style="background-image:url('${BOT_AVATAR}')" onclick="showUserModal('Hệ thống', 'system', '${BOT_BIO}', '${BOT_AVATAR}', 'Admin')"></div>
+                    <div><b>Hệ thống</b><br>${notify}</div>
+                </div>`;
+            }
+            if(id === 'vinhdanh-screen') {
+                const box = document.getElementById('vinhdanh-box');
+                const data = localStorage.getItem('vinhdanhData');
+                box.innerHTML = data ? data : "Chưa có vinh danh trong tuần này.";
+            }
+            showScreen(id);
+        }
+
+        function toggleMenu() {
+            const menu = document.getElementById('menu-drawer');
+            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function handleLogout() { 
+            let online = parseInt(localStorage.getItem('onlineMembers') || "0");
+            if(online > 0) localStorage.setItem('onlineMembers', online - 1);
+            localStorage.removeItem('user'); 
+            location.reload(); 
+        }
+
+        function handleRegister() {
+            const u = document.getElementById('reg-username').value;
+            const p = document.getElementById('reg-password').value;
+            if(!u || !p) return showAlert("Vui lòng điền thông tin!");
+            
+            localStorage.setItem('user', u);
+            localStorage.setItem('pass', p);
+            localStorage.setItem('displayName', u);
+            localStorage.setItem('joinDate', new Date().toLocaleDateString());
+            localStorage.setItem('uid', Math.floor(Math.random() * 90000000));
+            
+            let total = parseInt(localStorage.getItem('totalMembers') || "0") + 1;
+            let online = parseInt(localStorage.getItem('onlineMembers') || "0") + 1;
+            localStorage.setItem('totalMembers', total);
+            localStorage.setItem('onlineMembers', online);
+            
+            updateStats();
+            showScreen('chat-screen');
+            appendMessage('Hệ thống', `Chào Mừng @${u} đã đến với Nhóm!`, 'text');
+        }
+
+        function handleLogin() {
+            if(document.getElementById('log-username').value === localStorage.getItem('user')) {
+                let online = parseInt(localStorage.getItem('onlineMembers') || "0") + 1;
+                localStorage.setItem('onlineMembers', online);
+                updateStats();
+                showScreen('chat-screen');
+            } else {
+                showAlert("Sai thông tin!");
+            }
+        }
+
+        function saveProfile() {
+            localStorage.setItem('displayName', document.getElementById('new-display-name').value);
+            localStorage.setItem('bio', document.getElementById('new-bio').value);
+            if(document.getElementById('new-password').value) localStorage.setItem('pass', document.getElementById('new-password').value);
+            showAlert("Đã lưu thông tin!");
+        }
+
+        function showUserModal(name, username, bio, avatarUrl, date) {
+            document.getElementById('modal-name').innerText = name;
+            document.getElementById('modal-username').innerText = username;
+            document.getElementById('modal-bio').innerText = bio || "Chưa có tiểu sử";
+            document.getElementById('modal-date').innerText = date || "29/06/2026";
+            document.getElementById('modal-avatar').style.backgroundImage = `url(${avatarUrl})`;
+            document.getElementById('user-modal').style.display = 'flex';
+        }
+
+        function sendMessage() {
+            if(isBlocked) return showAlert("Bạn đang bị chặn do spam!");
+            const now = Date.now();
+            const msg = document.getElementById('chat-msg').value;
+            
+            if(!msg.trim()) return;
+            
+            if(now - lastMsgTime < 1000) {
+                spamCount++;
+                if(spamCount >= 3) {
+                    isBlocked = true;
+                    appendMessage('Hệ thống', 'Cảnh cáo: Bạn đã bị chặn do spam tin nhắn. Vui lòng chờ 10 giây.', 'text');
+                    setTimeout(() => { isBlocked = false; spamCount = 0; }, 10000);
+                } else {
+                    showAlert("Đừng spam!");
+                }
+            } else {
+                spamCount = 0;
+                appendMessage(localStorage.getItem('displayName'), msg, 'text');
+                document.getElementById('chat-msg').value = '';
+            }
+            lastMsgTime = now;
+        }
+
+        function sendFile(input, type) {
+            if (input.files && input.files[0]) {
+                const url = URL.createObjectURL(input.files[0]);
+                let content = type === 'image' ? `<a href="${url}" target="_blank"><img src="${url}" style="max-width:150px; display:block; border-radius:5px;"></a>` : `<a href="${url}" download="${input.files[0].name}" style="color:#5865f2">📁 ${input.files[0].name}</a>`;
+                appendMessage(localStorage.getItem('displayName'), content, 'html');
+            }
+        }
+
+        function recordVoice() {
+            showAlert("Đang ghi âm...");
+            setTimeout(() => {
+                const url = URL.createObjectURL(new Blob(["audio"], {type: 'audio/wav'}));
+                appendMessage(localStorage.getItem('displayName'), `<audio controls style="height:30px;"><source src="${url}"></audio>`, 'html');
+            }, 1000);
+        }
+
+        function appendMessage(name, text, type) {
+            const chat = document.getElementById('chat-box');
+            const isBot = (name === 'Hệ thống');
+            const avatar = isBot ? BOT_AVATAR : (document.getElementById('avatar-preview').src || '');
+            const bio = isBot ? BOT_BIO : localStorage.getItem('bio');
+            const date = isBot ? "Admin" : localStorage.getItem('joinDate');
+            const user = isBot ? "system" : localStorage.getItem('user');
+            
+            chat.innerHTML += `<div class="chat-msg">
+                <div class="chat-avatar" style="background-image:url(${avatar})" onclick="showUserModal('${name}', '${user}', '${bio}', '${avatar}', '${date}')"></div>
+                <div><b>${name}</b><br>${text}</div>
+            </div>`;
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function previewAvatar(input) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('avatar-preview').src = e.target.result;
+                document.getElementById('modal-avatar').style.backgroundImage = `url(${e.target.result})`;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    </script>
+</body>
+</html>
