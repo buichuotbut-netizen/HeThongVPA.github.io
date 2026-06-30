@@ -73,8 +73,8 @@
         <div class="header-chat">
             <h2 style="margin:0">Kênh chat VPA</h2>
             <div style="display:flex; gap:5px">
-                <button style="width:50px; height:50px; background:#4f545c" onclick="toggleMenu()">≡</button>
-                <button style="width:50px; height:50px; background:#4f545c" onclick="showScreen('settings-screen')">⚙️</button>
+                <button style="width:60px; height:60px; background:#4f545c" onclick="toggleMenu()">≡</button>
+                <button style="width:60px; height:60px; background:#4f545c" onclick="showScreen('settings-screen')">⚙️</button>
             </div>
         </div>
         <div id="menu-drawer" class="menu-dropdown">
@@ -85,12 +85,12 @@
         <div id="chat-box"></div>
         <div style="display:flex; gap:10px; margin-bottom: 10px;">
             <input type="file" id="img-input" style="display:none" accept="image/*" onchange="sendFile(this, 'image')">
-            <button style="flex:1" onclick="document.getElementById('img-input').click()">🖼️ Ảnh</button>
-            <button style="flex:1" onclick="recordVoice()">🎤 Ghi âm</button>
+            <button style="flex:1; height:60px;" onclick="document.getElementById('img-input').click()">🖼️ Ảnh</button>
+            <button style="flex:1; height:60px;" onclick="recordVoice()">🎤 Ghi âm</button>
         </div>
         <div style="display:flex; gap:5px">
-            <input type="text" id="chat-msg" placeholder="Nhập tin nhắn..." style="margin:0; height:60px;">
-            <button onclick="sendMessage()" style="padding:0 25px; height:60px;">Gửi</button>
+            <input type="text" id="chat-msg" placeholder="Nhập tin nhắn..." style="margin:0; height:70px; font-size: 18px;">
+            <button onclick="sendMessage()" style="padding:0 30px; height:70px; font-size: 18px;">Gửi</button>
         </div>
     </div>
 
@@ -230,25 +230,4 @@
             const adminLogo = isAdmin ? `<img src="https://files.catbox.moe/5d0knn.png" style="width:16px; height:16px; vertical-align:middle; margin-left:5px;">` : '';
             chat.innerHTML += `<div class="chat-msg">
                 <div class="chat-avatar" style="background-image:url(${BOT_AVATAR})" onclick="showUserModal('${name}', '${name}', '${localStorage.getItem('bio') || ""}', '${BOT_AVATAR}', ${isAdmin})"></div>
-                <div><b>${name} ${adminLogo}</b><br>${text}</div>
-            </div>`;
-            chat.scrollTop = chat.scrollHeight;
-        }
-
-        function previewAvatar(input) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                document.getElementById('avatar-preview').src = e.target.result;
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-
-        function recordVoice() {
-            showAlert("Đang ghi âm...");
-            setTimeout(() => {
-                appendMessage(localStorage.getItem('displayName'), "🎙️ [Đã gửi ghi âm]", 'text');
-            }, 1000);
-        }
-    </script>
-</body>
-</html>
+                <div><b>${name} ${adminLogo}</b><br>${
