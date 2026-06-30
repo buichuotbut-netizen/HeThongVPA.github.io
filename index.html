@@ -2,25 +2,28 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hệ thống Tài khoản VPA</title>
     <style>
-        body { font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #36393f; color: #b9bbbe; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .app-container { background-color: #2f3136; width: 650px; height: 650px; border-radius: 8px; padding: 20px; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.5); flex-direction: column; }
+        body { font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #36393f; color: #b9bbbe; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        .app-container { background-color: #2f3136; width: 100%; max-width: 650px; height: 100vh; border-radius: 0; padding: 20px; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.5); flex-direction: column; box-sizing: border-box; }
         .active-screen { display: flex !important; }
-        input, textarea { background-color: #202225; border: 1px solid #202225; border-radius: 3px; color: #dcddde; padding: 10px; width: 100%; box-sizing: border-box; margin-bottom: 15px; }
-        button { background-color: #5865f2; color: #fff; border: none; border-radius: 3px; padding: 10px; cursor: pointer; }
+        input, textarea { background-color: #202225; border: 1px solid #202225; border-radius: 3px; color: #dcddde; padding: 12px; width: 100%; box-sizing: border-box; margin-bottom: 15px; outline: none; }
+        input:focus { border: 1px solid #5865f2; }
+        button { background-color: #5865f2; color: #fff; border: none; border-radius: 3px; padding: 12px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        button:hover { background-color: #4752c4; }
         .role-pill { display: inline-block; padding: 5px 10px; border-radius: 15px; background: #40444b; margin: 3px; font-size: 12px; color: #fff; border: 1px solid #5865f2; }
         #chat-box, .nav-box { flex-grow: 1; background: #202225; padding: 15px; overflow-y: auto; margin-bottom: 15px; border-radius: 5px; border: 1px solid #3e4249; }
         .chat-msg { display: flex; align-items: flex-start; margin-bottom: 15px; padding: 5px; }
-        .chat-avatar { width: 45px; height: 45px; border-radius: 50%; background: #555; margin-right: 12px; background-size: cover; flex-shrink: 0; cursor: pointer; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 2000; }
-        .modal-content { background: #2f3136; padding: 30px; border-radius: 8px; width: 400px; text-align: center; color: #fff; }
+        .chat-avatar { width: 45px; height: 45px; border-radius: 50%; background: #555; margin-right: 12px; background-size: cover; flex-shrink: 0; cursor: pointer; border: 2px solid #2f3136; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 2000; }
+        .modal-content { background: #2f3136; padding: 30px; border-radius: 8px; width: 85%; max-width: 400px; text-align: center; color: #fff; }
         #custom-alert { display: none; position: fixed; top: 20px; right: 20px; background: #ed4245; color: white; padding: 15px 25px; border-radius: 5px; z-index: 3000; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-weight: bold; border-left: 5px solid #b32a2d; }
-        .header-chat { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .menu-dropdown { display: none; background: #202225; padding: 10px; margin-bottom: 10px; border-radius: 5px; color: #fff; border: 1px solid #3e4249; }
+        .header-chat { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #3e4249; }
+        .menu-dropdown { display: none; background: #202225; padding: 10px; margin-bottom: 10px; border-radius: 5px; color: #fff; border: 1px solid #3e4249; position: absolute; right: 20px; top: 70px; width: 150px; z-index: 1000; }
         .nav-content { display: none; flex-direction: column; color: #fff; height: 100%; }
         .list-item { background: #36393f; padding: 15px; margin-bottom: 10px; border-radius: 5px; border-left: 4px solid #5865f2; }
-        .stats-bar { background: #202225; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 13px; color: #fff; border: 1px solid #3e4249; }
+        .stats-bar { background: #202225; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 13px; color: #fff; border: 1px solid #3e4249; text-align: center; }
     </style>
 </head>
 <body>
@@ -31,75 +34,73 @@
         <div class="modal-content" style="background:#ed4245; border: 3px solid #fff;">
             <h1 style="color:white">🚫 BẠN ĐÃ BỊ BAN</h1>
             <p id="ban-reason-text" style="color:white; font-size:18px;"></p>
-            <button style="background:white; color:#ed4245; font-weight:bold" onclick="location.reload()">Đã rõ</button>
+            <button style="background:white; color:#ed4245; width:100%" onclick="location.reload()">Đã rõ</button>
         </div>
     </div>
 
-    <div id="register-screen" class="app-container active-screen">
+    <div id="register-screen" class="app-container">
         <h2>Tạo tài khoản</h2>
-        <input type="text" id="reg-username" placeholder="Tên đăng nhập (duy nhất)">
+        <input type="text" id="reg-username" placeholder="Tên đăng nhập">
         <input type="password" id="reg-password" placeholder="Mật khẩu (6-12 ký tự)">
-        <button onclick="handleRegister()">Đăng ký</button>
-        <button style="background:#4f545c; margin-top: 10px" onclick="showScreen('login-screen')">Đã có tài khoản? Đăng nhập</button>
+        <button onclick="handleRegister()" style="width:100%">Đăng ký</button>
+        <button style="background:#4f545c; margin-top: 10px; width:100%" onclick="showScreen('login-screen')">Đã có tài khoản? Đăng nhập</button>
     </div>
 
     <div id="login-screen" class="app-container">
         <h2>Đăng nhập</h2>
         <input type="text" id="log-username" placeholder="Tên đăng nhập">
         <input type="password" id="log-password" placeholder="Mật khẩu">
-        <button onclick="handleLogin()">Đăng nhập</button>
-        <button style="background:#4f545c; margin-top: 10px" onclick="showScreen('register-screen')">Chưa có tài khoản? Đăng ký</button>
+        <button onclick="handleLogin()" style="width:100%">Đăng nhập</button>
+        <button style="background:#4f545c; margin-top: 10px; width:100%" onclick="showScreen('register-screen')">Chưa có tài khoản? Đăng ký</button>
     </div>
 
     <div id="settings-screen" class="app-container">
         <h2>Cài đặt hồ sơ</h2>
-        <img id="avatar-preview" src="" style="width:100px;height:100px;border-radius:50%;background:#555;display:block;margin:0 auto 15px" onclick="document.getElementById('avatar-file').click()">
+        <img id="avatar-preview" src="" style="width:100px;height:100px;border-radius:50%;background:#555;display:block;margin:0 auto 15px; cursor:pointer" onclick="document.getElementById('avatar-file').click()">
         <input type="file" id="avatar-file" style="display:none" onchange="previewAvatar(this)">
         <input type="text" id="new-display-name" placeholder="Tên hiển thị">
         <input type="password" id="new-password" placeholder="Mật khẩu mới (để trống nếu không đổi)">
-        <textarea id="new-bio" placeholder="Tiểu sử..."></textarea>
-        <button onclick="saveProfile()">Lưu thông tin</button>
-        <button style="background:#ed4245; margin-top: 10px" onclick="handleLogout()">Đăng xuất</button>
-        <button style="background:#4f545c; margin-top: 10px" onclick="showScreen('chat-screen')">Quay lại khung chat</button>
+        <textarea id="new-bio" placeholder="Tiểu sử..." style="height:80px"></textarea>
+        <button onclick="saveProfile()" style="width:100%">Lưu thông tin</button>
+        <button style="background:#ed4245; margin-top: 10px; width:100%" onclick="handleLogout()">Đăng xuất</button>
+        <button style="background:#4f545c; margin-top: 10px; width:100%" onclick="showScreen('chat-screen')">Quay lại</button>
     </div>
 
     <div id="chat-screen" class="app-container">
         <div class="header-chat">
             <h2 style="margin:0">Kênh chat VPA</h2>
-            <div>
-                <button style="width:auto; background:#4f545c" onclick="toggleMenu()">≡</button>
-                <button style="width:auto; background:#4f545c" onclick="showScreen('settings-screen')">⚙️</button>
+            <div style="display:flex; gap:5px">
+                <button style="width:40px; height:40px; background:#4f545c" onclick="toggleMenu()">≡</button>
+                <button style="width:40px; height:40px; background:#4f545c" onclick="showScreen('settings-screen')">⚙️</button>
             </div>
         </div>
         <div id="menu-drawer" class="menu-dropdown">
-            <div style="cursor:pointer; padding:5px; border-bottom: 1px solid #333" onclick="showNav('notification-screen')">🔔 Xem thông báo</div>
-            <div style="cursor:pointer; padding:5px" onclick="showNav('vinhdanh-screen')">🏆 Xem vinh danh</div>
+            <div style="cursor:pointer; padding:10px; border-bottom: 1px solid #333" onclick="showNav('notification-screen')">🔔 Thông báo</div>
+            <div style="cursor:pointer; padding:10px" onclick="showNav('vinhdanh-screen')">🏆 Vinh danh</div>
         </div>
-        <div class="stats-bar" id="member-stats">
-            Tổng thành viên: 0 | Thành viên đang onl: 0
-        </div>
+        <div class="stats-bar" id="member-stats">Tổng thành viên: 0 | Đang onl: 0</div>
         <div id="chat-box"></div>
         <div style="display:flex; gap:10px; margin-bottom: 10px;">
             <input type="file" id="img-input" style="display:none" accept="image/*" onchange="sendFile(this, 'image')">
-            <button style="width:auto" onclick="document.getElementById('img-input').click()">🖼️</button>
-            <input type="file" id="file-input" style="display:none" onchange="sendFile(this, 'file')">
-            <button style="width:auto" onclick="document.getElementById('file-input').click()">📁</button>
-            <button style="width:auto" onclick="recordVoice()">🎤</button>
+            <button style="flex:1" onclick="document.getElementById('img-input').click()">🖼️ Ảnh</button>
+            <button style="flex:1" onclick="recordVoice()">🎤 Ghi âm</button>
         </div>
-        <input type="text" id="chat-msg" placeholder="Nhập tin nhắn..." style="margin:0">
-        <button onclick="sendMessage()" style="margin-top:10px">Gửi</button>
+        <div style="display:flex; gap:5px">
+            <input type="text" id="chat-msg" placeholder="Nhập tin nhắn..." style="margin:0">
+            <button onclick="sendMessage()" style="padding:0 20px">Gửi</button>
+        </div>
     </div>
 
     <div id="notification-screen" class="app-container nav-content">
         <h2>Thông báo hệ thống</h2>
         <div id="notify-box" class="nav-box"></div>
-        <button onclick="showScreen('chat-screen')">Quay lại chat</button>
+        <button onclick="showScreen('chat-screen')" style="width:100%">Quay lại</button>
     </div>
 
     <div id="vinhdanh-screen" class="app-container nav-content">
         <h2>Bảng vinh danh</h2>
         <div id="vinhdanh-box" class="nav-box"></div>
-        <button onclick="showScreen('chat-screen')">Quay lại chat</button>
+        <button onclick="showScreen('chat-screen')" style="width:100%">Quay lại</button>
     </div>
 
     <div id="user-modal" class="modal" onclick="this.style.display='none'">
@@ -107,8 +108,7 @@
             <div id="modal-avatar" style="width:100px;height:100px;background:#555;border-radius:50%;margin:0 auto 10px;background-size:cover; border: 3px solid #36393f;"></div>
             <h2 id="modal-name">Tên</h2>
             <p><strong>Tên đăng nhập:</strong> <span id="modal-username"></span></p>
-            <p><strong>Ngày tham gia:</strong> <span id="modal-date"></span></p>
-            <p><strong>Vai trò:</strong> <span class="role-pill">Member</span></p>
+            <p><strong>Vai trò:</strong> <span class="role-pill" id="modal-role">Member</span></p>
             <p style="text-align: left; background: #202225; padding: 10px; border-radius: 5px;"><strong>Tiểu sử:</strong><br><span id="modal-bio"></span></p>
         </div>
     </div>
@@ -120,7 +120,17 @@
         let spamCount = 0;
         let isBlocked = false;
 
-        // Kiểm tra ban mỗi 2 giây
+        // Tự động đăng nhập
+        window.onload = () => {
+            const savedUser = localStorage.getItem('user');
+            if (savedUser) {
+                showScreen('chat-screen');
+                updateStats();
+            } else {
+                showScreen('register-screen');
+            }
+        };
+
         setInterval(() => {
             const myUsername = localStorage.getItem('user');
             const bannedUser = localStorage.getItem('bannedUser');
@@ -131,27 +141,11 @@
             }
         }, 2000);
 
-        window.addEventListener('storage', () => {
-            updateStats();
-        });
-
-        function checkWeeklyReset() {
-            const lastReset = localStorage.getItem('lastResetDate');
-            const now = new Date();
-            const weekOfYear = Math.floor(now.getTime() / (1000 * 60 * 60 * 24 * 7));
-            if (!lastReset || parseInt(lastReset) !== weekOfYear) {
-                localStorage.removeItem('vinhdanhData');
-                localStorage.setItem('lastResetDate', weekOfYear);
-            }
-        }
-        checkWeeklyReset();
-
         function updateStats() {
-            let total = parseInt(localStorage.getItem('totalMembers') || "0");
-            let online = parseInt(localStorage.getItem('onlineMembers') || "0");
-            document.getElementById('member-stats').innerText = `Tổng thành viên : ${total} | Thành viên đang onl : ${online}`;
+            let total = parseInt(localStorage.getItem('totalMembers') || "1");
+            let online = parseInt(localStorage.getItem('onlineMembers') || "1");
+            document.getElementById('member-stats').innerText = `Tổng thành viên: ${total} | Đang onl: ${online}`;
         }
-        updateStats();
 
         function showAlert(msg) {
             const el = document.getElementById('custom-alert');
@@ -167,19 +161,6 @@
 
         function showNav(id) {
             document.getElementById('menu-drawer').style.display = 'none';
-            if(id === 'notification-screen') {
-                const box = document.getElementById('notify-box');
-                const notify = localStorage.getItem('notifyData') || "Chào mừng bạn gia nhập cộng đồng VPA.";
-                box.innerHTML = `<div class="chat-msg">
-                    <div class="chat-avatar" style="background-image:url('${BOT_AVATAR}')" onclick="showUserModal('Hệ thống', 'system', '${BOT_BIO}', '${BOT_AVATAR}', 'Admin')"></div>
-                    <div><b>Hệ thống</b><br>${notify}</div>
-                </div>`;
-            }
-            if(id === 'vinhdanh-screen') {
-                const box = document.getElementById('vinhdanh-box');
-                const data = localStorage.getItem('vinhdanhData');
-                box.innerHTML = data ? data : "Chưa có vinh danh trong tuần này.";
-            }
             showScreen(id);
         }
 
@@ -189,8 +170,6 @@
         }
 
         function handleLogout() { 
-            let online = parseInt(localStorage.getItem('onlineMembers') || "0");
-            if(online > 0) localStorage.setItem('onlineMembers', online - 1);
             localStorage.removeItem('user'); 
             location.reload(); 
         }
@@ -204,24 +183,18 @@
             localStorage.setItem('pass', p);
             localStorage.setItem('displayName', u);
             localStorage.setItem('joinDate', new Date().toLocaleDateString());
-            localStorage.setItem('uid', Math.floor(Math.random() * 90000000));
             
-            let total = parseInt(localStorage.getItem('totalMembers') || "0") + 1;
-            let online = parseInt(localStorage.getItem('onlineMembers') || "0") + 1;
-            localStorage.setItem('totalMembers', total);
-            localStorage.setItem('onlineMembers', online);
-            
-            updateStats();
             showScreen('chat-screen');
+            updateStats();
             appendMessage('Hệ thống', `Chào Mừng @${u} đã đến với Nhóm!`, 'text');
         }
 
         function handleLogin() {
-            if(document.getElementById('log-username').value === localStorage.getItem('user')) {
-                let online = parseInt(localStorage.getItem('onlineMembers') || "0") + 1;
-                localStorage.setItem('onlineMembers', online);
-                updateStats();
+            const u = document.getElementById('log-username').value;
+            const p = document.getElementById('log-password').value;
+            if(u === localStorage.getItem('user') && p === localStorage.getItem('pass')) {
                 showScreen('chat-screen');
+                updateStats();
             } else {
                 showAlert("Sai thông tin!");
             }
@@ -231,73 +204,33 @@
             localStorage.setItem('displayName', document.getElementById('new-display-name').value);
             localStorage.setItem('bio', document.getElementById('new-bio').value);
             if(document.getElementById('new-password').value) localStorage.setItem('pass', document.getElementById('new-password').value);
-            showAlert("Đã lưu thông tin!");
+            showAlert("Đã lưu!");
         }
 
-        function showUserModal(name, username, bio, avatarUrl, date) {
+        function showUserModal(name, username, bio, avatarUrl, isAdmin) {
             document.getElementById('modal-name').innerText = name;
             document.getElementById('modal-username').innerText = username;
             document.getElementById('modal-bio').innerText = bio || "Chưa có tiểu sử";
-            document.getElementById('modal-date').innerText = date || "29/06/2026";
             document.getElementById('modal-avatar').style.backgroundImage = `url(${avatarUrl})`;
+            document.getElementById('modal-role').innerText = isAdmin ? "Admin" : "Member";
             document.getElementById('user-modal').style.display = 'flex';
         }
 
         function sendMessage() {
-            if(isBlocked) return showAlert("Bạn đang bị chặn do spam!");
-            const now = Date.now();
+            if(isBlocked) return showAlert("Đang bị chặn spam!");
             const msg = document.getElementById('chat-msg').value;
-            
             if(!msg.trim()) return;
-            
-            if(now - lastMsgTime < 1000) {
-                spamCount++;
-                if(spamCount >= 3) {
-                    isBlocked = true;
-                    appendMessage('Hệ thống', 'Cảnh cáo: Bạn đã bị chặn do spam tin nhắn. Vui lòng chờ 10 giây.', 'text');
-                    setTimeout(() => { isBlocked = false; spamCount = 0; }, 10000);
-                } else {
-                    showAlert("Đừng spam!");
-                }
-            } else {
-                spamCount = 0;
-                appendMessage(localStorage.getItem('displayName'), msg, 'text');
-                document.getElementById('chat-msg').value = '';
-            }
-            lastMsgTime = now;
-        }
-
-        function sendFile(input, type) {
-            if (input.files && input.files[0]) {
-                const url = URL.createObjectURL(input.files[0]);
-                let content = type === 'image' ? `<a href="${url}" target="_blank"><img src="${url}" style="max-width:150px; display:block; border-radius:5px;"></a>` : `<a href="${url}" download="${input.files[0].name}" style="color:#5865f2">📁 ${input.files[0].name}</a>`;
-                appendMessage(localStorage.getItem('displayName'), content, 'html');
-            }
-        }
-
-        function recordVoice() {
-            showAlert("Đang ghi âm...");
-            setTimeout(() => {
-                const url = URL.createObjectURL(new Blob(["audio"], {type: 'audio/wav'}));
-                appendMessage(localStorage.getItem('displayName'), `<audio controls style="height:30px;"><source src="${url}"></audio>`, 'html');
-            }, 1000);
+            appendMessage(localStorage.getItem('displayName'), msg, 'text');
+            document.getElementById('chat-msg').value = '';
         }
 
         function appendMessage(name, text, type) {
             const chat = document.getElementById('chat-box');
-            const isBot = (name === 'Hệ thống');
-            const avatar = isBot ? BOT_AVATAR : (document.getElementById('avatar-preview').src || '');
-            const bio = isBot ? BOT_BIO : localStorage.getItem('bio');
-            const date = isBot ? "Admin" : localStorage.getItem('joinDate');
-            const user = isBot ? "system" : localStorage.getItem('user');
-            
-            const isAdmin = localStorage.getItem('isAdmin') === 'true';
-            const adminLogo = (isAdmin && name === localStorage.getItem('user')) 
-                ? `<img src="https://files.catbox.moe/5d0knn.png" style="width:16px; height:16px; vertical-align:middle; margin-left:5px;">` 
-                : '';
+            const isAdmin = localStorage.getItem('isAdmin') === 'true' || name === 'Hệ thống';
+            const adminLogo = isAdmin ? `<img src="https://files.catbox.moe/5d0knn.png" style="width:16px; height:16px; vertical-align:middle; margin-left:5px;">` : '';
             
             chat.innerHTML += `<div class="chat-msg">
-                <div class="chat-avatar" style="background-image:url(${avatar})" onclick="showUserModal('${name}', '${user}', '${bio}', '${avatar}', '${date}')"></div>
+                <div class="chat-avatar" style="background-image:url(${BOT_AVATAR})" onclick="showUserModal('${name}', '${name}', '${localStorage.getItem('bio') || ""}', '${BOT_AVATAR}', ${isAdmin})"></div>
                 <div><b>${name} ${adminLogo}</b><br>${text}</div>
             </div>`;
             chat.scrollTop = chat.scrollHeight;
@@ -307,9 +240,15 @@
             const reader = new FileReader();
             reader.onload = (e) => {
                 document.getElementById('avatar-preview').src = e.target.result;
-                document.getElementById('modal-avatar').style.backgroundImage = `url(${e.target.result})`;
             };
             reader.readAsDataURL(input.files[0]);
+        }
+
+        function recordVoice() {
+            showAlert("Đang ghi âm...");
+            setTimeout(() => {
+                appendMessage(localStorage.getItem('displayName'), "🎙️ [Đã gửi ghi âm]", 'text');
+            }, 1000);
         }
     </script>
 </body>
