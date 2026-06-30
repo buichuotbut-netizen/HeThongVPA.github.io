@@ -230,4 +230,25 @@
             const adminLogo = isAdmin ? `<img src="https://files.catbox.moe/5d0knn.png" style="width:16px; height:16px; vertical-align:middle; margin-left:5px;">` : '';
             chat.innerHTML += `<div class="chat-msg">
                 <div class="chat-avatar" style="background-image:url(${BOT_AVATAR})" onclick="showUserModal('${name}', '${name}', '${localStorage.getItem('bio') || ""}', '${BOT_AVATAR}', ${isAdmin})"></div>
-                <div><b>${name} ${adminLogo}</b><br>${
+                <div><b>${name} ${adminLogo}</b><br>${text}</div>
+            </div>`;
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function previewAvatar(input) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('avatar-preview').src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        function recordVoice() {
+            showAlert("Đang ghi âm...");
+            setTimeout(() => {
+                appendMessage(localStorage.getItem('displayName'), "🎙️ [Đã gửi ghi âm]", 'text');
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
