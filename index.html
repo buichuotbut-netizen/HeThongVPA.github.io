@@ -129,10 +129,23 @@
             if (savedUser) {
                 showScreen('chat-screen');
                 updateStats();
+                requestNotificationPermission();
             } else {
                 showScreen('register-screen');
             }
         };
+
+        function requestNotificationPermission() {
+            if ("Notification" in window) {
+                Notification.requestPermission();
+            }
+        }
+
+        function sendSystemNotification(title, body) {
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification(title, { body: body, icon: BOT_AVATAR });
+            }
+        }
 
         setInterval(() => {
             const myUsername = localStorage.getItem('user');
@@ -188,6 +201,7 @@
             showScreen('chat-screen');
             updateStats();
             appendMessage('Hệ thống', `Chào Mừng @${u} đã đến với Nhóm!`, 'text');
+            requestNotificationPermission();
         }
 
         function handleLogin() {
@@ -196,6 +210,7 @@
             if(u === localStorage.getItem('user') && p === localStorage.getItem('pass')) {
                 showScreen('chat-screen');
                 updateStats();
+                requestNotificationPermission();
             } else {
                 showAlert("Sai thông tin!");
             }
@@ -234,6 +249,10 @@
                 <div><b>${name} ${adminLogo}</b><br>${text}</div>
             </div>`;
             chat.scrollTop = chat.scrollHeight;
+
+            if (name !== localStorage.getItem('displayName')) {
+                sendSystemNotification("Tin nhắn mới từ " + name, text);
+            }
         }
 
         function previewAvatar(input) {
